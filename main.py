@@ -1,21 +1,15 @@
-
 import pymongo
 from pprint import pprint
 import matplotlib.pyplot as plt
 import pprint
-import numpy as np
+
 from statistics import mean
 
 
 
 
 from featureAbstraction import abstract_feature
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.model_selection import train_test_split
 
-from sklearn import metrics
-from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.naive_bayes import GaussianNB
 # label = user
 # feture = post
 
@@ -27,9 +21,7 @@ userLimit = 10589 # No of users to iterate
 
 
 client = pymongo.MongoClient("mongodb://192.168.1.26:27017/?serverSelectionTimeoutMS=10000&connectTimeoutMS=10000")
-#client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["psosm"]
-#igProfile = db['igprofile']
 
 def connectDB(collectionname):
     '''
@@ -50,7 +42,6 @@ def textfromInstaPost(postsList):
 
     return textList
 
-
 def getInstatext(igid):
     collection = connectDB('igprofile')
     userText = []
@@ -59,20 +50,15 @@ def getInstatext(igid):
         return textfromInstaPost(postsList)
 
 
-
-
 def textfromtwitterPost(twitteruserID):
     collection = connectDB('twcontent2')
     userText = []
     # Find all post of a particular user
     for userData in collection.find({"user.id":twitteruserID}):
-        #pprint.pprint(userData)
-        #break ##################
 
         userText.append(userData['full_text'])
 
     return userText
-
 
 def getTwittertext(twid):
     collection = connectDB('twprofile')
@@ -86,81 +72,18 @@ def getTwittertext(twid):
 ########### End of Get all post
 
 
-########### For Analysis
-def getFrequencyForall(allUser, textTofind):
+def do_analysis(option):
     '''
-    Args:
-        list: first element insta data second twitter
-    '''
-    all_count = []
-    for user in allUser:
-        count = []
-        for i in user:
-            count.append(getFrequency(i,textTofind))
-        all_count.append(count)
-    return all_count
+    Used to do analysis and make graphs
 
 
-def getFrequency(text, tofind):
-    count = 0
-    for i in text:
-        count += i.count(tofind)
-    return count
-
-########### End of Analysis
-
-def getlengthForall(allUser):
-    '''
-    Args:
-        list: first element insta data second twitter
-    '''
-    all_count = []
-    for user in allUser:
-        count = []
-        for i in user:
-            count.append(len(i))
-        all_count.append(count)
-    return all_count
-
-
-
-
-
-
-def drawPlot(data,ylabel,xlabel):
-    '''
-        Input:
-        [[a1,b1],[a2,b2]]
-
-        a1 and a2 be y axis points
-        b1 and b2 be x axis points
+    option: 1 for insta
+            2 for twitter
 
     '''
-
-    yaxis = []
-    xaxis = []
-
-    for i in data:
-        yaxis.append(i[0])
-        xaxis.append(i[1])
-
-    plt.scatter(yaxis, xaxis, color='r')
-    plt.xlabel(ylabel)
-    plt.ylabel(xlabel)
-    plt.show()
-
-
-
-
-
-
-
-
-
-def do_insta_analysis():
     collection = connectDB('3pair')
     #all_text = []
-    MaxMin = []
+    MaxMin = []         # To store the diff between length of posts made by users
     all_post_length = []
     avg_post_length = []
 
@@ -169,20 +92,21 @@ def do_insta_analysis():
     cursor = collection.find({}, no_cursor_timeout=True).limit(userLimit)
     for usr in cursor:
         currentUser = [] # Two elements first list of insta text, second list of twitter
-        currentUser = getTwittertext(usr['twid'])
+        if option == 2:
+            currentUser = getTwittertext(usr['twid'])
+        else:
+            currentUser = getInstatext(usr['igid'])
+
         if currentUser == None:
             continue
-        post_length = []
+        post_length = []  # To store length of each and every post of the current user
         for i in currentUser:
             post_length.append(len(i))
-
 
         if post_length != []:
             noOfPoster_perUSer.append(len(post_length))
             MaxMin.append(max(post_length) - min(post_length))
             avg_post_length.append(mean(post_length))
-
-
         all_post_length.extend(post_length)
 
         #all_text.append(currentUser)
@@ -225,10 +149,143 @@ def do_insta_analysis():
     client.close()
 
 
+#do_analysis(1)
 
 
 
-'''
+
+
+
+def nooftwitterPost(twitteruserID):
+    collection = connectDB('twcontent2')
+    no_Post = 0
+    # Find all post of a particular user
+    no_Post =  collection.find({"user.id":twitteruserID}).count()
+    return no_Post
+
+def getTwitterpostno(twid):
+    collection = connectDB('twprofile')
+    tw_post_num = 0
+    for userData in collection.find({"_id":twid}):
+        userID = userData['id']
+        tw_post_num = nooftwitterPost(userID)
+
+    return tw_post_num
+
+
+def find_elegible_users(twitterLimit, instaLimit):
+    """
+        Find the users who have twitter and insta post beyond a certain limit
+    """
+    collection = connectDB('3pair')
+    cursor = collection.find({}, no_cursor_timeout=True).limit(userLimit)
+
+    count = 0
+    goodUsers = []
+    cursor = collection.find({}, no_cursor_timeout=True).limit(userLimit)
+    for usr in cursor:
+        currentUser = [] # Two elements first list of insta text, second list of twitter
+        TwitterPosts = getTwitterpostno(usr['twid'])
+        currentUserInsta = getInstatext(usr['igid'])
+
+        if TwitterPosts == None or currentUserInsta == None:
+            continue
+
+        insta_pots = len(currentUserInsta)
+
+        if insta_pots >= instaLimit and TwitterPosts >= twitterLimit:
+            count +=1
+            goodUsers.append((usr['twid'],usr['igid']))
+
+    cursor.close()
+
+    f = open("goodUsers.txt", "a")
+    for i in goodUsers:
+        f.write(str(i[0])+" "+ str(i[1])+"\n")
+    f.close()
+
+    print(count)
+
+
+
+find_elegible_users(2500,10)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+########### Useless stuff
+
+"""
+def getFrequencyForall(allUser, textTofind):
+    '''
+    Args:
+        list: first element insta data second twitter
+    '''
+    all_count = []
+    for user in allUser:
+        count = []
+        for i in user:
+            count.append(getFrequency(i,textTofind))
+        all_count.append(count)
+    return all_count
+
+
+def getFrequency(text, tofind):
+    count = 0
+    for i in text:
+        count += i.count(tofind)
+    return count
+
+
+
+def getlengthForall(allUser):
+    '''
+    Args:
+        list: first element insta data second twitter
+    '''
+    all_count = []
+    for user in allUser:
+        count = []
+        for i in user:
+            count.append(len(i))
+        all_count.append(count)
+    return all_count
+
+
+
+def drawPlot(data,ylabel,xlabel):
+    '''
+        Input:
+        [[a1,b1],[a2,b2]]
+
+        a1 and a2 be y axis points
+        b1 and b2 be x axis points
+
+    '''
+
+    yaxis = []
+    xaxis = []
+
+    for i in data:
+        yaxis.append(i[0])
+        xaxis.append(i[1])
+
+    plt.scatter(yaxis, xaxis, color='r')
+    plt.xlabel(ylabel)
+    plt.ylabel(xlabel)
+    plt.show()
+
+
 if __name__ == "__main__":
     collection = connectDB('3pair')
     all_text = []
@@ -261,79 +318,4 @@ if __name__ == "__main__":
 
 
 
-'''
-
-
-
-
-def naiveBays(featureVector,Label):
-
-
-    X_train, X_test, y_train, y_test = train_test_split(featureVector, Label, test_size=0.3,random_state=109) # 70% training and 30% test
-    gnb = GaussianNB()
-    gnb.fit(X_train, y_train)
-
-    y_pred = gnb.predict(X_test)
-    print("Accuracy:",metrics.accuracy_score(y_test, y_pred))
-
-
-def normalize(featureVector,authorFeaturevalue):
-    #ff
-    featureVector = np.array(featureVector)
-    mean_feature = np.mean(authorFeaturevalue, axis=0)
-    standard_dev_feature = np.std(authorFeaturevalue,axis=0,ddof=1)
-
-    normalizedfv = []
-    i =0
-    for col in featureVector.T:
-        col = col - mean_feature[i]
-        if standard_dev_feature[i] != 0:
-            col = col / standard_dev_feature[i]
-        normalizedfv.append(col.tolist())
-        i += 1
-
-    normalizedfv = np.array(normalizedfv)
-    return normalizedfv.T
-
-
-
-'''
-if __name__ == "__main__":
-    collection = connectDB('3pair')
-    all_text = []
-
-    for usr in collection.find().limit(userLimit):
-        currentUser = [] # Two elements first list of insta text, second list of twitter
-        currentUser = getInstatext(usr['igid'])
-
-        if currentUser != None and currentUser != []:
-            all_text.append(currentUser)
-
-
-    Label = []
-    count = 1
-    featureVector = []
-    authorFeaturevalue = []
-    for userPost in all_text:
-        userFeatureVector = abstract_feature(userPost)
-
-
-
-        a = np.array(userFeatureVector)
-        c= np.array(np.mean(a, axis=0))
-        c = c.tolist()
-
-        authorFeaturevalue.append(c)
-
-        Label.extend([count]*len(userFeatureVector))
-        featureVector.extend(userFeatureVector)
-        count +=1
-
-    authorFeaturevalue = np.array(authorFeaturevalue)
-    #featureVector = normalize(featureVector,authorFeaturevalue )
-    naiveBays(featureVector,Label)
-'''
-
-
-
-do_insta_analysis()
+"""
