@@ -23,11 +23,11 @@ from sklearn.naive_bayes import GaussianNB
 
 
 #10590
-userLimit = 10589 # No of users to iterate
+userLimit = 10 # No of users to iterate
 
 
-#client = pymongo.MongoClient("mongodb://192.168.1.26:27017/?serverSelectionTimeoutMS=10000&connectTimeoutMS=10000")
-client = pymongo.MongoClient("mongodb://localhost:27017/")
+client = pymongo.MongoClient("mongodb://192.168.1.26:27017/?serverSelectionTimeoutMS=10000&connectTimeoutMS=10000")
+#client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["psosm"]
 #igProfile = db['igprofile']
 

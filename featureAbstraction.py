@@ -4,8 +4,8 @@ import emoji
 
 
 #stops = stopwords.words('english')
-x = [i.split("'")for i in stops]
-stops = [i[0] for i in x]
+#x = [i.split("'")for i in stops]
+#stops = [i[0] for i in x]
 #stops = list(set(stops))
 stops = []
 
