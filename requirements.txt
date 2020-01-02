@@ -1,1 +1,7 @@
-# StylometricAnalysis
+pymongo
+pprint
+matplotlib
+numpy
+statistics
+emoji
+scikit-learn
