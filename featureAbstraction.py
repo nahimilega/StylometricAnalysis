@@ -1,9 +1,9 @@
-from nltk.corpus import stopwords
+#from nltk.corpus import stopwords
 
 import emoji
 
 
-stops = stopwords.words('english')
+#stops = stopwords.words('english')
 x = [i.split("'")for i in stops]
 stops = [i[0] for i in x]
 #stops = list(set(stops))
