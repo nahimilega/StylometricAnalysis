@@ -72,7 +72,7 @@ def getTwittertext(twid):
 ########### End of Get all post
 
 
-def do_analysis(option):
+def do_analysis(option, goodUsers):
     '''
     Used to do analysis and make graphs
 
@@ -81,6 +81,7 @@ def do_analysis(option):
             2 for twitter
 
     '''
+    global userLimit
     collection = connectDB('3pair')
     #all_text = []
     MaxMin = []         # To store the diff between length of posts made by users
@@ -90,12 +91,16 @@ def do_analysis(option):
     noOfPoster_perUSer = []
 
     cursor = collection.find({}, no_cursor_timeout=True).limit(userLimit)
-    for usr in cursor:
+    for uid in cursor:
         currentUser = [] # Two elements first list of insta text, second list of twitter
         if option == 2:
-            currentUser = getTwittertext(usr['twid'])
+            if str(uid['twid']) in goodUsers:
+                currentUser = getTwittertext(uid['twid'])
         else:
-            currentUser = getInstatext(usr['igid'])
+            if str(uid['igid']) in goodUsers:
+                currentUser = getInstatext(uid['igid'])
+
+
 
         if currentUser == None:
             continue
@@ -111,10 +116,11 @@ def do_analysis(option):
 
         #all_text.append(currentUser)
 
-    cursor.close()
+    #cursor.close()
 
     print("Mean length of all the posts: ",mean(all_post_length))
 
+    userLimit = len(avg_post_length)
 
     ######## Plot 1
     plt.hist(MaxMin, bins=10)
@@ -208,7 +214,34 @@ def find_elegible_users(twitterLimit, instaLimit):
 
 
 
-find_elegible_users(2500,10)
+if __name__ == "__main__":
+    f = open("goodUsers.txt","r")
+
+    twit = []
+    while True:
+
+        f1 = f.readline()
+        if not f1:
+            break
+        twitter, insta = f1.split()
+        twit.append(twitter)
+        #print(insta)
+
+    f.close()
+
+    do_analysis(2, twit)
+
+    '''
+    jj = list(f1)
+    print(jj)
+    for row in jj:
+        print(row)
+        twitter, insta = row.split()
+        print(twitter)
+        print(insta)
+    '''
+
+#find_elegible_users(2500,10)
 
 
 
