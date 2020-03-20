@@ -17,7 +17,7 @@ from statistics import mean
 
 
 #10590
-userLimit = 3 # No of users to iterate
+userLimit = 10590 # No of users to iterate
 
 
 client = pymongo.MongoClient("mongodb://192.168.1.26:27017/?serverSelectionTimeoutMS=10000&connectTimeoutMS=10000")
@@ -92,7 +92,7 @@ def do_analysis(option, goodUsers):
 
     cursor = collection.find({}, no_cursor_timeout=True).limit(userLimit)
     for uid in cursor:
-        print(uid)
+        #print(uid)
         currentUser = [] # Two elements first list of insta text, second list of twitter
         if option == 2:
             if str(uid['twid']) in goodUsers:
