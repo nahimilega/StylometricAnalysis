@@ -1,13 +1,12 @@
-#from nltk.corpus import stopwords
+from nltk.corpus import stopwords
 
 import emoji
+import numpy as np
 
-
-#stops = stopwords.words('english')
-#x = [i.split("'")for i in stops]
-#stops = [i[0] for i in x]
-#stops = list(set(stops))
-stops = []
+stops = stopwords.words('english')
+x = [i.split("'")for i in stops]
+stops = [i[0] for i in x]
+stops = list(set(stops))
 
 slang_stops = ['gonna', 'coulda', 'shoulda',
                'lotta', 'lots', 'oughta', 'gotta', 'ain', 'sorta', 'kinda', 'yeah', 'whatever', 'cuz', 'ya', 'haha', 'lol', 'eh']
@@ -25,12 +24,15 @@ ascii_string = set("""!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXY
 
 stops.extend(slang_stops)
 stops.extend(puncts)
-#stops.extend(numbers)
+stops.extend(numbers)
 stops.extend(alphabet)
 stops.extend(formattings)
 
+
+
+
 def char_is_emoji(character):
-    return character in emoji.UNICODE_EMOJI
+    return character in emoji.UNICODE_EMOJI.keys()
 
 
 def abstract_feature(userText):
@@ -39,12 +41,13 @@ def abstract_feature(userText):
         userText: a list of all the post from a user for a specific platform
 
     Returns:
-        Featue Vector for each fow for one post
+        Featue Vector for each row for one post and each column for one feature
     '''
     featureVector = []
+
     for post in userText:
 
-        normalizingValue = len(post)
+
 
         local_feature_vector = [0]*len(stops)
 
@@ -52,7 +55,7 @@ def abstract_feature(userText):
         # no of words also cnasidered here because counting the spaces
         post_in_lower = post.lower()
         for i in range(len(stops)):
-            local_feature_vector[i] += post_in_lower.count(stops[i])/normalizingValue
+            local_feature_vector[i] += post_in_lower.count(stops[i])
 
 
         # No of character
@@ -62,18 +65,18 @@ def abstract_feature(userText):
         # No of non ascii character
         total_count = len(post)
         ascii_count = sum(c in ascii_string for c in post)
-        local_feature_vector.append((total_count-ascii_count)/normalizingValue)
+        local_feature_vector.append(total_count-ascii_count)
 
 
 
         # No of upper case
         u = sum(1 for i in post if i.isupper())
-        local_feature_vector.append(u/normalizingValue)
+        local_feature_vector.append(u)
 
 
         # Count the no of emoji
         u = sum(1 for i in post if char_is_emoji(i))
-        local_feature_vector.append(u/normalizingValue)
+        local_feature_vector.append(u)
 
 
         '''
@@ -85,7 +88,7 @@ def abstract_feature(userText):
         featureVector.append(local_feature_vector)
 
 
-    return featureVector
+    return np.array(featureVector)
 
 
 

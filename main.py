@@ -17,7 +17,7 @@ from featureAbstraction import abstract_feature
 
 
 #10590
-userLimit = 10589 # No of users to iterate
+userLimit = 3 # No of users to iterate
 
 
 client = pymongo.MongoClient("mongodb://192.168.1.26:27017/?serverSelectionTimeoutMS=10000&connectTimeoutMS=10000")
@@ -92,13 +92,18 @@ def do_analysis(option, goodUsers):
 
     cursor = collection.find({}, no_cursor_timeout=True).limit(userLimit)
     for uid in cursor:
+        print(uid)
         currentUser = [] # Two elements first list of insta text, second list of twitter
         if option == 2:
-            if str(uid['twid']) in goodUsers:
+                #if str(uid['twid']) in goodUsers:
+                print(str(uid['twid']))
                 currentUser = getTwittertext(uid['twid'])
+                print(currentUser)
+                exit()
         else:
             if str(uid['igid']) in goodUsers:
                 currentUser = getInstatext(uid['igid'])
+                #print(currentUser)
 
 
 
@@ -229,7 +234,7 @@ if __name__ == "__main__":
 
     f.close()
 
-    do_analysis(2, twit)
+    do_analysis(2, twit[:1])
 
     '''
     jj = list(f1)
@@ -242,6 +247,20 @@ if __name__ == "__main__":
     '''
 
 #find_elegible_users(2500,10)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
