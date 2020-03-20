@@ -95,11 +95,10 @@ def do_analysis(option, goodUsers):
         print(uid)
         currentUser = [] # Two elements first list of insta text, second list of twitter
         if option == 2:
-                #if str(uid['twid']) in goodUsers:
-                print(str(uid['twid']))
+            if str(uid['twid']) in goodUsers:
+                #print(str(uid['twid']))
                 currentUser = getTwittertext(uid['twid'])
-                print(currentUser)
-                exit()
+
         else:
             if str(uid['igid']) in goodUsers:
                 currentUser = getInstatext(uid['igid'])
@@ -234,7 +233,7 @@ if __name__ == "__main__":
 
     f.close()
 
-    do_analysis(2, twit[:1])
+    do_analysis(2, twit)
 
     '''
     jj = list(f1)
