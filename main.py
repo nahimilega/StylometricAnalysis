@@ -8,7 +8,7 @@ from statistics import mean
 
 
 
-from featureAbstraction import abstract_feature
+#from featureAbstraction import abstract_feature
 
 # label = user
 # feture = post
@@ -55,8 +55,8 @@ def textfromtwitterPost(twitteruserID):
     userText = []
     # Find all post of a particular user
     for userData in collection.find({"user.id":twitteruserID}):
-
-        userText.append(userData['full_text'])
+        if "RT @" not in userData['full_text']:
+            userText.append(userData['full_text'])
 
     return userText
 
